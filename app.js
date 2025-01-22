@@ -26,7 +26,7 @@ phina.define('GameScene', {
 
         const boxes = [];
         const circles = [];
-        const boxeSize = 25;
+        const boxeSize = 40;
         const areaSize = 600;
 
         let playerCnt = 0;
