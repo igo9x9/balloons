@@ -29,6 +29,8 @@ phina.define('GameScene', {
         const boxeSize = 40;
         const areaSize = 600;
 
+        const enemyBoxes = [];
+
         let playerCnt = 0;
 
         // メッセージ領域
@@ -97,12 +99,25 @@ phina.define('GameScene', {
 
         // 指定した数の敵をランダムな位置に配置する
         function createEnemies(count) {
-            for (let i = 0; i < count; i++) {
-                // ランダムのboxの中心座標を得る
-                const box = boxes[Math.floor(Math.random() * boxes.length)];
-                const x = box.x;
-                const y = box.y;
-                createCircle(ENEMY_COLOR, x, y);
+            if (count === 0) {
+                for (let i = 0; i < enemyBoxes.length; i++) {
+                    // ランダムのboxの中心座標を得る
+                    const box = boxes[enemyBoxes[i]];
+                    const x = box.x;
+                    const y = box.y;
+                    createCircle(ENEMY_COLOR, x, y);
+                }
+            } else {
+                enemyBoxes.length = 0;
+                for (let i = 0; i < count; i++) {
+                    // ランダムのboxの中心座標を得る
+                    const index = Math.floor(Math.random() * boxes.length);
+                    const box = boxes[index];
+                    const x = box.x;
+                    const y = box.y;
+                    createCircle(ENEMY_COLOR, x, y);
+                    enemyBoxes.push(index);
+                }
             }
         }
 
@@ -160,7 +175,7 @@ phina.define('GameScene', {
             update();
         };
 
-        function startGame() {
+        function startGame(retry) {
             // 初期化
             this.status = "none";
             circles.length = 0;
@@ -171,7 +186,11 @@ phina.define('GameScene', {
                 box.__color = null;
             });
             setTimeout(function() {
-                createEnemies(ENEMY_NUM);
+                if (retry) {
+                    createEnemies(0);
+                } else {
+                    createEnemies(ENEMY_NUM);
+                }
                 update();
                 self.status = "playerTurn";
             }, 1);
@@ -209,17 +228,34 @@ phina.define('GameScene', {
     
         // リトライボタン
         this.retryButton = MyButton({
-            text: "NEW GAME",
+            text: "RETRY",
             x: 100,
             y: 100,
-            width: 350,
+            width: 250,
             height: 100,
             fill: "#60a3bc",
             fontSize: 50,
-        }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(6)).hide();
+        }).addChildTo(this).setPosition(this.gridX.center(-4), this.gridY.center(6.5)).hide();
         this.retryButton.selected = () => {
             self.retryButton.hide();
-            startGame();
+            self.newButton.hide();
+            startGame(true);
+        };
+
+        // 新規ゲームボタン
+        this.newButton = MyButton({
+            text: "NEW",
+            x: 100,
+            y: 100,
+            width: 250,
+            height: 100,
+            fill: "#60a3bc",
+            fontSize: 50,
+        }).addChildTo(this).setPosition(this.gridX.center(4), this.gridY.center(6.5)).hide();
+        this.newButton.selected = () => {
+            self.newButton.hide();
+            self.retryButton.hide();
+            startGame(false);
         };
 
     },
@@ -249,6 +285,7 @@ phina.define('GameScene', {
                 }
                 this.message.show();
                 this.retryButton.show();
+                this.newButton.show();
             }
         }
     }
