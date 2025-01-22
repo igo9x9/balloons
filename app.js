@@ -326,7 +326,7 @@ phina.main(function() {
         ],
     });
 
-    App.fps = 30;
+    App.fps = 60;
 
     App.run();
 
