@@ -26,7 +26,7 @@ phina.define('GameScene', {
 
         const boxes = [];
         const circles = [];
-        const boxeSize = 30;
+        const boxeSize = 40;
         const areaSize = 600;
 
         const enemyBoxes = [];
@@ -369,7 +369,7 @@ phina.main(function() {
         ],
     });
 
-    App.fps = 60;
+    App.fps = 30;
 
     App.run();
 
