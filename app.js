@@ -10,6 +10,35 @@ const ENEMY_COLOR = "#2c3e50";
 const PLAYER_NUM = 4;
 const ENEMY_NUM = 6;
 
+phina.define('TitleScene', {
+    superClass: 'DisplayScene',
+    init: function(param/*{}*/) {
+        this.superInit(param);
+
+        this.backgroundColor = PLAYER_COLOR;
+
+        const self = this;
+
+        Label({
+            text: "INK",
+            fontSize: 150,
+            fontWeight: 800,
+            fill: "white",
+        }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(-2));
+
+        Label({
+            text: "TAP TO START",
+            fontWeight: 800,
+            fill: "white",
+        }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(5));
+
+        this.on("pointstart", () => {
+            self.exit("GameScene");
+        });
+
+    },
+});
+
 phina.define('GameScene', {
     superClass: 'DisplayScene',
     init: function(param/*{}*/) {
@@ -68,6 +97,16 @@ phina.define('GameScene', {
             }
         });
 
+        this.resultLabel = Label({
+            text: "100%",
+            fontSize: 300,
+            fill: "white",
+            fontFamily: "monospace",
+            fontWeight: 800,
+        }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(-3)).hide();
+        this.resultLabel.alpha = 0.8;
+
+
         // 箱を敷き詰める
         for (let x = boxeSize; x <= area.width; x += boxeSize) {
             for (let y = boxeSize; y <= area.height; y += boxeSize) {
@@ -94,6 +133,7 @@ phina.define('GameScene', {
             circle.addChildTo(area).setPosition(x, y);
             circle.__color = color;
             circles.push(circle);
+            return circle;
         }
 
         // 指定した数の敵をランダムな位置に配置する
@@ -141,7 +181,7 @@ phina.define('GameScene', {
                         }).addChildTo(area).setPosition(box.left, box.top);
                         ink.alpha = 0.5;
                         box.__color = circle.__color;
-                        ink.tweener.to({alpha: 1}, 200).play();
+                        ink.tweener.to({alpha: 1}, 1000).play();
                     }
                 }
             }
@@ -171,7 +211,18 @@ phina.define('GameScene', {
         this.grawCircle = function() {
             for (let i = 0; i < circles.length; i++) {
                 const circle = circles[i];
-                circle.radius = (circle.radius + 15);
+                // 新しい小さな円を、上からcircleの中心に移動する
+                const drop = CircleShape({
+                    radius: 5,
+                    fill: circle.__color,
+                    strokeWidth: 0,
+                }).addChildTo(area).setPosition(circle.x, -20);
+                drop.tweener.to({y: circle.y}, 1000, "easeInExpo")
+                .call(function() {
+                    circle.radius = (circle.radius + 30);
+                    drop.remove();
+                })
+                .play();
             }
             update();
         };
@@ -220,7 +271,7 @@ phina.define('GameScene', {
             y: 100,
             width: 300,
             height: 100,
-            fill: "#60a3bc",
+            fill: "#3498db",
             fontSize: 50,
         }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(5)).hide();
         startButton.selected = () => {
@@ -243,6 +294,7 @@ phina.define('GameScene', {
         this.retryButton.selected = () => {
             self.retryButton.hide();
             self.newButton.hide();
+            this.resultLabel.hide();
             startGame(true);
         };
 
@@ -259,13 +311,14 @@ phina.define('GameScene', {
         this.newButton.selected = () => {
             self.newButton.hide();
             self.retryButton.hide();
+            this.resultLabel.hide();
             startGame(false);
         };
 
     },
     update: function() {
         this.counter++;
-        if (this.counter < 5) {
+        if (this.counter < 10) {
             return;
         }
         this.counter = 0;
@@ -279,15 +332,16 @@ phina.define('GameScene', {
                 this.status = "end";
                 console.log(count);
                 const percent = Math.ceil(count.player / (count.player + count.emeny) * 100);
-                this.message.text = percent + "% ";
+                this.resultLabel.text = percent + "%";
                 if (percent > 50) {
-                    this.message.text += "WIN!";
+                    this.message.text = "WIN!";
                 } else if (percent < 50) {
-                    this.message.text += "LOOSE";
+                    this.message.text = "LOOSE...";
                 } else {
-                    this.message.text += "DRAW";
+                    this.message.text = "DRAW";
                 }
                 this.message.show();
+                this.resultLabel.show();
                 this.retryButton.show();
                 this.newButton.show();
             }
@@ -356,12 +410,12 @@ phina.define('MyButton', {
 phina.main(function() {
     App = GameApp({
         // assets: ASSETS,
-        startLabel: 'GameScene',
+        startLabel: 'TitleScene',
         scenes: [
-            // {
-            //     label: 'TitleScene',
-            //     className: 'TitleScene',
-            // },
+            {
+                label: 'TitleScene',
+                className: 'TitleScene',
+            },
             {
                 label: 'GameScene',
                 className: 'GameScene',
@@ -369,7 +423,7 @@ phina.main(function() {
         ],
     });
 
-    App.fps = 60;
+    App.fps = 30;
 
     App.run();
 
