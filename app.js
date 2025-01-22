@@ -3,8 +3,8 @@ phina.globalize();
 // 定数
 
 // 色
-const PLAYER_COLOR = "#ff793f";
-const ENEMY_COLOR = "#40407a";
+const PLAYER_COLOR = "#e55039";
+const ENEMY_COLOR = "#0c2461";
 
 // ユニット数
 const PLAYER_NUM = 4;
@@ -15,7 +15,7 @@ phina.define('GameScene', {
     init: function(param/*{}*/) {
         this.superInit(param);
 
-        this.backgroundColor = "#d1ccc0";
+        this.backgroundColor = "#f8c291";
 
         const self = this;
 
@@ -197,7 +197,7 @@ phina.define('GameScene', {
             y: 100,
             width: 300,
             height: 100,
-            fill: "#227093",
+            fill: "#60a3bc",
             fontSize: 50,
         }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(5)).hide();
         startButton.selected = () => {
@@ -214,7 +214,7 @@ phina.define('GameScene', {
             y: 100,
             width: 350,
             height: 100,
-            fill: "#84817a",
+            fill: "#60a3bc",
             fontSize: 50,
         }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(6)).hide();
         this.retryButton.selected = () => {
