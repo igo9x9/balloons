@@ -4,7 +4,7 @@ phina.globalize();
 
 // 色
 const PLAYER_COLOR = "#e55039";
-const ENEMY_COLOR = "#0c2461";
+const ENEMY_COLOR = "#2c3e50";
 
 // ユニット数
 const PLAYER_NUM = 4;
@@ -15,18 +15,18 @@ phina.define('GameScene', {
     init: function(param/*{}*/) {
         this.superInit(param);
 
-        this.backgroundColor = "#f8c291";
+        this.backgroundColor = "#ecf0f1";
 
         const self = this;
 
-        const BOX_COLOR = "#f7f1e3";
+        const BOX_COLOR = "#bdc3c7";
 
         this.counter = 0;
         this.status = "none";
 
         const boxes = [];
         const circles = [];
-        const boxeSize = 40;
+        const boxeSize = 30;
         const areaSize = 600;
 
         const enemyBoxes = [];
@@ -36,7 +36,7 @@ phina.define('GameScene', {
         // メッセージ領域
         this.message = Label({
             text: PLAYER_NUM,
-            fill: "#000000",
+            fill: PLAYER_COLOR,
             fontSize: 80,
             fontWeight: 800,
         }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(4));
@@ -50,36 +50,35 @@ phina.define('GameScene', {
         }).addChildTo(this).setPosition(20, 20);
         area.setOrigin(0, 0);
 
+        area.setInteractive(true);
+        area.on("pointstart", function(e) {
+            if (self.status !== "playerTurn") {
+                return;
+            }
+            if (playerCnt < PLAYER_NUM) {
+                createPlayer(e.pointer.position.x - area.x, e.pointer.position.y - area.y);
+                playerCnt++;
+                self.message.text = PLAYER_NUM - playerCnt;
+            }
+
+            if (playerCnt === PLAYER_NUM) {
+                self.status = "ready";
+                self.message.hide();
+                startButton.show();
+            }
+        });
+
         // 箱を敷き詰める
         for (let x = boxeSize; x <= area.width; x += boxeSize) {
             for (let y = boxeSize; y <= area.height; y += boxeSize) {
-                const box = RectangleShape({
+                const box = {
+                    top: y - boxeSize / 2,
+                    left: x - boxeSize / 2,
                     width: boxeSize,
                     height: boxeSize,
-                    fill: BOX_COLOR,
-                    strokeWidth: 0,
-                });
-                box.addChildTo(area).setPosition(x - boxeSize / 2, y - boxeSize / 2);
-                box.__color = null;
+                    __color: null,
+                };
                 boxes.push(box);
-
-                box.setInteractive(true);
-                box.on("pointstart", function() {
-                    if (self.status !== "playerTurn") {
-                        return;
-                    }
-                    if (playerCnt < PLAYER_NUM) {
-                        createPlayer(box);
-                        playerCnt++;
-                        self.message.text = PLAYER_NUM - playerCnt;
-                    }
-
-                    if (playerCnt === PLAYER_NUM) {
-                        self.status = "ready";
-                        self.message.hide();
-                        startButton.show();
-                    }
-                });
             }
         }
 
@@ -89,7 +88,7 @@ phina.define('GameScene', {
             const circle = CircleShape({
                 radius: 1,
                 fill: color,
-                stroke: 0,
+                strokeWidth: 0,
                 fill: "transparent",
             });
             circle.addChildTo(area).setPosition(x, y);
@@ -101,10 +100,9 @@ phina.define('GameScene', {
         function createEnemies(count) {
             if (count === 0) {
                 for (let i = 0; i < enemyBoxes.length; i++) {
-                    // ランダムのboxの中心座標を得る
                     const box = boxes[enemyBoxes[i]];
-                    const x = box.x;
-                    const y = box.y;
+                    const x = box.left;
+                    const y = box.top;
                     createCircle(ENEMY_COLOR, x, y);
                 }
             } else {
@@ -113,8 +111,8 @@ phina.define('GameScene', {
                     // ランダムのboxの中心座標を得る
                     const index = Math.floor(Math.random() * boxes.length);
                     const box = boxes[index];
-                    const x = box.x;
-                    const y = box.y;
+                    const x = box.left;
+                    const y = box.top;
                     createCircle(ENEMY_COLOR, x, y);
                     enemyBoxes.push(index);
                 }
@@ -122,9 +120,7 @@ phina.define('GameScene', {
         }
 
         // 指定したboxの中心にプレイヤーの円を配置する
-        function createPlayer(box) {
-            const x = box.x;
-            const y = box.y;
+        function createPlayer(x, y) {
             createCircle(PLAYER_COLOR, x, y);
             update();
         }
@@ -133,14 +129,19 @@ phina.define('GameScene', {
         function update() {
             for (let i = 0; i < circles.length; i++) {
                 const circle = circles[i];
-                // 円と重なっている箱を黒く塗る
+                // 円と重なっている箱を塗る
                 for (let n = 0; n < boxes.length; n++) {
                     const box = boxes[n];
-                    if (box.__color === null && Collision.testCircleRect(circle, box)) {
-                        box.alpha = 0;
-                        box.fill = circle.__color;
+                    if (box.__color === null && Collision.testCircleRect(circle, phina.geom.Rect(box.left - box.width / 2, box.top - box.height / 2, box.width, box.height))) {
+                        const ink = RectangleShape({
+                            width: box.width,
+                            height: box.height,
+                            fill: circle.__color,
+                            strokeWidth: 0,
+                        }).addChildTo(area).setPosition(box.left, box.top);
+                        ink.alpha = 0;
                         box.__color = circle.__color;
-                        box.tweener.to({alpha: 1}, 200).play();
+                        ink.tweener.to({alpha: 1}, 200).play();
                     }
                 }
             }
@@ -178,11 +179,14 @@ phina.define('GameScene', {
         function startGame(retry) {
             // 初期化
             this.status = "none";
+            area.children.clear();
+            circles.forEach(function(circle) {
+                circle.remove();
+            });
             circles.length = 0;
             playerCnt = 0;
             self.message.text = PLAYER_NUM;
             boxes.forEach(function(box) {
-                box.fill = BOX_COLOR;
                 box.__color = null;
             });
             setTimeout(function() {
@@ -233,7 +237,7 @@ phina.define('GameScene', {
             y: 100,
             width: 250,
             height: 100,
-            fill: "#60a3bc",
+            fill: "#95a5a6",
             fontSize: 50,
         }).addChildTo(this).setPosition(this.gridX.center(-4), this.gridY.center(6.5)).hide();
         this.retryButton.selected = () => {
@@ -249,7 +253,7 @@ phina.define('GameScene', {
             y: 100,
             width: 250,
             height: 100,
-            fill: "#60a3bc",
+            fill: "#3498db",
             fontSize: 50,
         }).addChildTo(this).setPosition(this.gridX.center(4), this.gridY.center(6.5)).hide();
         this.newButton.selected = () => {
@@ -261,7 +265,7 @@ phina.define('GameScene', {
     },
     update: function() {
         this.counter++;
-        if (this.counter < 3) {
+        if (this.counter < 5) {
             return;
         }
         this.counter = 0;
@@ -365,7 +369,7 @@ phina.main(function() {
         ],
     });
 
-    App.fps = 15;
+    App.fps = 60;
 
     App.run();
 
