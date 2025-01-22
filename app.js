@@ -103,7 +103,7 @@ phina.define('GameScene', {
             fill: "white",
             fontFamily: "monospace",
             fontWeight: 800,
-        }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(-2.8)).hide();
+        }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(-2.5)).hide();
         this.resultLabel.alpha = 0.8;
 
 
@@ -211,18 +211,7 @@ phina.define('GameScene', {
         this.grawCircle = function() {
             for (let i = 0; i < circles.length; i++) {
                 const circle = circles[i];
-                // 新しい小さな円を、上からcircleの中心に移動する
-                const drop = CircleShape({
-                    radius: 5,
-                    fill: circle.__color,
-                    strokeWidth: 0,
-                }).addChildTo(area).setPosition(circle.x, -20);
-                drop.tweener.to({y: circle.y}, 1000, "easeInExpo")
-                .call(function() {
-                    circle.radius = (circle.radius + 30);
-                    drop.remove();
-                })
-                .play();
+                circle.radius = (circle.radius + 10);
             }
             update();
         };
@@ -318,7 +307,7 @@ phina.define('GameScene', {
     },
     update: function() {
         this.counter++;
-        if (this.counter < 20) {
+        if (this.counter < 5) {
             return;
         }
         this.counter = 0;
@@ -332,7 +321,7 @@ phina.define('GameScene', {
                 this.status = "end";
                 console.log(count);
                 const percent = Math.ceil(count.player / (count.player + count.emeny) * 100);
-                this.resultLabel.text = percent + "%";
+                this.resultLabel.text = " " + percent + "% ";
                 if (percent > 50) {
                     this.message.text = "WIN!";
                 } else if (percent < 50) {
