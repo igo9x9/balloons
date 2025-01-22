@@ -86,7 +86,7 @@ phina.define('GameScene', {
         function createCircle(color, x, y) {
             // 円を描く
             const circle = CircleShape({
-                radius: 1,
+                radius: 0.1,
                 fill: color,
                 strokeWidth: 0,
                 fill: "transparent",
@@ -139,7 +139,7 @@ phina.define('GameScene', {
                             fill: circle.__color,
                             strokeWidth: 0,
                         }).addChildTo(area).setPosition(box.left, box.top);
-                        ink.alpha = 0;
+                        ink.alpha = 0.5;
                         box.__color = circle.__color;
                         ink.tweener.to({alpha: 1}, 200).play();
                     }
@@ -369,7 +369,7 @@ phina.main(function() {
         ],
     });
 
-    App.fps = 30;
+    App.fps = 60;
 
     App.run();
 
