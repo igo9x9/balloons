@@ -99,11 +99,11 @@ phina.define('GameScene', {
 
         this.resultLabel = Label({
             text: "100%",
-            fontSize: 300,
+            fontSize: 280,
             fill: "white",
             fontFamily: "monospace",
             fontWeight: 800,
-        }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(-3)).hide();
+        }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(-2.8)).hide();
         this.resultLabel.alpha = 0.8;
 
 
@@ -318,7 +318,7 @@ phina.define('GameScene', {
     },
     update: function() {
         this.counter++;
-        if (this.counter < 10) {
+        if (this.counter < 20) {
             return;
         }
         this.counter = 0;
