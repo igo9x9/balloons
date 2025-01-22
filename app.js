@@ -125,7 +125,7 @@ phina.define('GameScene', {
                         box.alpha = 0;
                         box.fill = circle.__color;
                         box.__color = circle.__color;
-                        box.tweener.to({alpha: 1}, 500).play();
+                        box.tweener.to({alpha: 1}, 200).play();
                     }
                 }
             }
@@ -224,11 +224,11 @@ phina.define('GameScene', {
 
     },
     update: function() {
-        // this.counter++;
-        // if (this.counter < 5) {
-        //     return;
-        // }
-        // this.counter = 0;
+        this.counter++;
+        if (this.counter < 3) {
+            return;
+        }
+        this.counter = 0;
 
         if (this.status === "playing") {
             this.grawCircle();
