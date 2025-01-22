@@ -170,9 +170,11 @@ phina.define('GameScene', {
                 box.fill = BOX_COLOR;
                 box.__color = null;
             });
-            createEnemies(ENEMY_NUM);
-            update();
-            self.status = "playerTurn";
+            setTimeout(function() {
+                createEnemies(ENEMY_NUM);
+                update();
+                self.status = "playerTurn";
+            }, 1);
         }
 
         startGame();
@@ -207,10 +209,10 @@ phina.define('GameScene', {
     
         // リトライボタン
         this.retryButton = MyButton({
-            text: "RETRY",
+            text: "NEW GAME",
             x: 100,
             y: 100,
-            width: 300,
+            width: 350,
             height: 100,
             fill: "#84817a",
             fontSize: 50,
@@ -222,11 +224,11 @@ phina.define('GameScene', {
 
     },
     update: function() {
-        this.counter++;
-        if (this.counter < 5) {
-            return;
-        }
-        this.counter = 0;
+        // this.counter++;
+        // if (this.counter < 5) {
+        //     return;
+        // }
+        // this.counter = 0;
 
         if (this.status === "playing") {
             this.grawCircle();
@@ -326,7 +328,7 @@ phina.main(function() {
         ],
     });
 
-    App.fps = 60;
+    App.fps = 15;
 
     App.run();
 
