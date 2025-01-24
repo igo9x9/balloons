@@ -10,6 +10,38 @@ const ENEMY_COLOR = "#2c3e50";
 const PLAYER_NUM = 4;
 const ENEMY_NUM = 6;
 
+phina.define('CheckScene', {
+    superClass: 'DisplayScene',
+    init: function(param/*{}*/) {
+        this.superInit(param);
+
+        this.backgroundColor = "black";
+
+        const self = this;
+
+        const query = new URLSearchParams(window.location.search);
+
+        if (query.has("data")) {
+
+            const data = URLCompressor.expand(query.get("data"));
+
+            setTimeout(function() {
+                self.exit("GameScene", {data: data});
+            }, 100);
+
+            // クエリパラメータはもう不要
+            const url = new URL(window.location.href);
+            history.replaceState(null, '', url.pathname);
+
+        } else {
+            setTimeout(function() {
+                self.exit("TitleScene");
+            }, 100);
+        }
+
+    },
+});
+
 phina.define('TitleScene', {
     superClass: 'DisplayScene',
     init: function(param/*{}*/) {
@@ -39,9 +71,38 @@ phina.define('TitleScene', {
     },
 });
 
+phina.define('ShareScene', {
+    superClass: 'DisplayScene',
+    init: function(param/*{text: String}*/) {
+        this.superInit(param);
+
+        this.backgroundColor = "rgba(0, 0, 0, 0.5)";
+
+        RectangleShape({
+            width: 600,
+            height: 300,
+            fill: "#ecf0f1",
+            strokeWidth: 0,
+            cornerRadius: 10,
+            shadow: "black",
+        }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center());
+
+        Label({
+            text: "この問題に再チャレンジできるURLを\nクリップボードにコピーしました。",
+            fontSize: 30,
+            fontWeight: 800,
+            fill: "black",
+        }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center());
+
+        this.on("pointstart", () => {
+            this.exit();
+        });
+    },
+});
+
 phina.define('GameScene', {
     superClass: 'DisplayScene',
-    init: function(param/*{}*/) {
+    init: function(param/*{data: enemyBoxes}*/) {
         this.superInit(param);
 
         this.backgroundColor = "#ecf0f1";
@@ -59,6 +120,15 @@ phina.define('GameScene', {
         const areaSize = 600;
 
         const enemyBoxes = [];
+console.log(param);
+        // 敵の初期配置データが存在するなら使う
+        if (param.data) {
+            const boxes = JSON.parse(param.data);
+            boxes.forEach((boxID) => {
+                enemyBoxes.push(boxID);
+            });
+        }
+        console.log(param);
 
         let playerCnt = 0;
 
@@ -68,7 +138,7 @@ phina.define('GameScene', {
             fill: PLAYER_COLOR,
             fontSize: 80,
             fontWeight: 800,
-        }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(4));
+        }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(3.5));
 
         // 箱を敷き詰める領域
         const area = RectangleShape({
@@ -240,7 +310,7 @@ phina.define('GameScene', {
             }, 1);
         }
 
-        startGame();
+        startGame(enemyBoxes.length !== 0);
 
         // プレイヤーの操作期間
         function playerTurn() {
@@ -277,9 +347,9 @@ phina.define('GameScene', {
             y: 100,
             width: 250,
             height: 100,
-            fill: "#95a5a6",
+            fill: "#00b894",
             fontSize: 50,
-        }).addChildTo(this).setPosition(this.gridX.center(-4), this.gridY.center(6.5)).hide();
+        }).addChildTo(this).setPosition(this.gridX.center(-4), this.gridY.center(5.5)).hide();
         this.retryButton.selected = () => {
             self.retryButton.hide();
             self.newButton.hide();
@@ -296,12 +366,30 @@ phina.define('GameScene', {
             height: 100,
             fill: "#3498db",
             fontSize: 50,
-        }).addChildTo(this).setPosition(this.gridX.center(4), this.gridY.center(6.5)).hide();
+        }).addChildTo(this).setPosition(this.gridX.center(4), this.gridY.center(5.5)).hide();
         this.newButton.selected = () => {
             self.newButton.hide();
             self.retryButton.hide();
             this.resultLabel.hide();
             startGame(false);
+        };
+
+        // 共有ボタン
+        this.shareButton = MyButton({
+            text: "SHARE",
+            x: 100,
+            y: 100,
+            width: 150,
+            height: 50,
+            fill: "#95a5a6",
+            fontSize: 30,
+        }).addChildTo(this).setPosition(this.gridX.center(5.2), this.gridY.center(7.2));
+        this.shareButton.selected = () => {
+            console.log(enemyBoxes);
+            const data = URLCompressor.compress(JSON.stringify(enemyBoxes));
+            const url = location.protocol + "//" + location.host + location.pathname.replace("index.html", "index2.html") + "?data=" + data;
+            navigator.clipboard.writeText(url);
+            App.pushScene(ShareScene({text: "SHARE"}));
         };
 
     },
@@ -333,6 +421,7 @@ phina.define('GameScene', {
                 this.resultLabel.show();
                 this.retryButton.show();
                 this.newButton.show();
+                this.shareButton.show();
             }
         }
     }
@@ -399,8 +488,12 @@ phina.define('MyButton', {
 phina.main(function() {
     App = GameApp({
         // assets: ASSETS,
-        startLabel: 'TitleScene',
+        startLabel: 'CheckScene',
         scenes: [
+            {
+                label: 'CheckScene',
+                className: 'CheckScene',
+            },
             {
                 label: 'TitleScene',
                 className: 'TitleScene',
@@ -408,6 +501,10 @@ phina.main(function() {
             {
                 label: 'GameScene',
                 className: 'GameScene',
+            },
+            {
+                label: 'ShareScene',
+                className: 'ShareScene',
             },
         ],
     });
