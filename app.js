@@ -413,7 +413,7 @@ console.log(param);
                 if (percent > 50) {
                     this.message.text = "WIN!";
                 } else if (percent < 50) {
-                    this.message.text = "LOOSE...";
+                    this.message.text = "LOSE...";
                 } else {
                     this.message.text = "DRAW";
                 }
